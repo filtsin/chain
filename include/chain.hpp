@@ -221,14 +221,14 @@ private:
 };
 
 template <typename ...Pair>
-auto make_chain_inner(const std::tuple<Pair...> &tuple, Pair ...iterator) {
+chain<Pair...> make_chain_inner(const std::tuple<Pair...> &tuple, Pair ...iterator) {
   return chain<Pair...>(iterator...);
 }
 
 }
 
 template <typename ...Container>
-auto make_chain(Container &...container) {
+auto make_chain(Container &...container) -> decltype(details::make_chain_inner(std::make_tuple(std::make_pair(std::begin(container), std::end(container))...), std::make_pair(std::begin(container), std::end(container))...)) {
   auto tuple = std::make_tuple(std::make_pair(std::begin(container), std::end(container))...);
   return details::make_chain_inner(tuple, std::make_pair(std::begin(container), std::end(container))...);
 }
