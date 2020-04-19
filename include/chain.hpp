@@ -4,8 +4,6 @@
 #include <type_traits>
 #include <cassert>
 
-#include <iostream>
-
 namespace details {
 
 template <size_t Index, typename Fn, typename This, typename ...T>
