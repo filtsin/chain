@@ -6,15 +6,15 @@
 
 namespace details {
 
-template <size_t Index, typename Fn, typename This, typename ...T>
+template <std::size_t Index, typename Fn, typename This, typename ...T>
 typename std::enable_if<Index == sizeof...(T), void>::type
-visit_tuple_el_by_index(std::tuple<T...> &tuple, size_t index, const Fn &fn, This this_p) {
+visit_tuple_el_by_index(std::tuple<T...> &tuple, std::size_t index, const Fn &fn, This this_p) {
   assert(false && "index >= tuple.size()");
 }
 
-template <size_t Index, typename Fn, typename This, typename ...T>
+template <std::size_t Index, typename Fn, typename This, typename ...T>
 typename std::enable_if<Index < sizeof...(T), void>::type
-visit_tuple_el_by_index(std::tuple<T...> &tuple, size_t index, const Fn &fn, This this_p) {
+visit_tuple_el_by_index(std::tuple<T...> &tuple, std::size_t index, const Fn &fn, This this_p) {
   if (Index == index) {
     auto el = std::get<Index>(tuple);
     fn(this_p, std::get<Index>(tuple));
@@ -24,7 +24,7 @@ visit_tuple_el_by_index(std::tuple<T...> &tuple, size_t index, const Fn &fn, Thi
 }
 
 template <typename Fn, typename This, typename ...T>
-void visit_tuple_el(std::tuple<T...> &tuple, size_t index, const Fn &fn, This this_p) {
+void visit_tuple_el(std::tuple<T...> &tuple, std::size_t index, const Fn &fn, This this_p) {
   visit_tuple_el_by_index<0>(tuple, index, fn, this_p);
 }
 
@@ -65,7 +65,7 @@ public:
   }
 
   pointer deref() const {
-    return cur.operator->();
+    return &*cur;
   }
 
 private:
@@ -83,9 +83,9 @@ public:
   using reference = T&;
   using pointer = T*;
   using iterator_category = std::bidirectional_iterator_tag;
-  using difference_type = ptrdiff_t;
+  using difference_type = std::ptrdiff_t;
 
-  chain_iterator(size_t _index, std::tuple<range_wrapper<Iterator>...> _tuple)
+  chain_iterator(std::size_t _index, std::tuple<range_wrapper<Iterator>...> _tuple)
     : index(_index), tuple(std::move(_tuple)) { }
 
   iterator operator++() {
@@ -136,7 +136,7 @@ public:
   }
 
 private:
-  size_t index;
+  std::size_t index;
   std::tuple<range_wrapper<Iterator>...> tuple;
 
   struct visit_next_iterator {
@@ -164,7 +164,8 @@ private:
   struct visit_iterator {
     template <typename U>
     void operator()(const chain_iterator *iter, U &el) const {
-      p_value = el.deref();
+      // Checked for convertible before
+      p_value = reinterpret_cast<pointer>(el.deref());
     }
 
     mutable pointer p_value;
@@ -195,7 +196,7 @@ public:
 
 private:
 
-  template <size_t Index, size_t N>
+  template <std::size_t Index, std::size_t N>
   typename std::enable_if<Index < N, void>::type
   construct(const std::tuple<Pair...> &tuple) {
 
@@ -213,7 +214,7 @@ private:
     construct<Index + 1, N>(tuple);
   }
 
-  template <size_t Index, size_t N>
+  template <std::size_t Index, std::size_t N>
   typename std::enable_if<Index == N, void>::type
   construct(const std::tuple<Pair...> &tuple) { }
 
